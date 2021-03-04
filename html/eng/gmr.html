@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author"	content="Anna Schneider">
+	<title>Anna Schneider</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap" rel="stylesheet">  
+	<link rel="stylesheet" type="text/css" href="../../css/style.css">
+</head>
+	<header class="header-detail">
+		<div class="container-nav container">
+			<nav aria-label="Navigation">
+				<ul class="main-nav-list">
+					<li class="main-nav-list-item"><a class="main-nav-link" href="index.html">Home</a></li>
+					<li class="main-nav-list-item"><a class="main-nav-active main-nav-link main-nav-active-projects" href="projects.html">Projects</a></li>
+					<!--<li class="main-nav-list-item"><a class="main-nav-link" href="#">Über mich</a></li>-->
+				</ul>
+			</nav>
+			<nav aria-label="Sprachauswahl">
+				<ul class="language-nav-list">
+					<li class="language-nav-list-item"><a class="language-nav-link" href="../gmr.html">Deutsch</a></li>
+					<li class="language-nav-list-item"><a class="language-nav-active language-nav-link" href="#">English</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<div class="wrapper"> <!--big container-->
+		<div class="container container-flex"> <!--content container-->
+			<main role="main">
+				<div class="section-container">
+					<h1>Song Visualization</h1>
+					<video width="100%" max-height="744px" controls>
+						<source src="../../img/gmr/gmr.mp4" type="video/mp4">
+					Your browser does not support the video tag.
+					</video>
+					<p class="caption">Music: <a href="https://www.youtube.com/watch?v=GnC9jXoFLy8">Dat Melody</a> by DOUB (from 1:30 to 2:14)</p>
+					<!--<img class="detail-thumbnail" src="../img/gmr/clap2.png">-->
+					<h2>Summary</h2>
+					<div class="detail-intro">
+						<p>In this project we had to animate a one minute long section of a song in Unity or with Processing. We decided on a Minimal Techno Tune by DOUB.
+						The main task was finding a fitting visual depiction for both the tune and our whole team.
+						The final product is a one minute long video of the animation of the tune. We animated the video in Unity.
+						Our project group consisted of Jana Mühleisen, Simone Benesso and me. Since Simone was a foreign student who did not speak German, we worked in English the entire time.</p>
+					</div>
+				</div>
+				<div class="section-container">
+					<h2>Process</h2>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">First, we had to find an even understanding of the music. We did that by setting up opposite adjectives and voting on which we felt matched the tune more. This semantic differential helped us decide on the Parameters our visualization should convey.
+						Once we were sure we all had the same understanding of the tune, we started analyzing the melody. To do this we first named every instrument. For example, we named our lead instrument "beep".</p>
+						<div class="col2-1-img"> 	<!--maintains image ratio-->                    
+							<img src="../../img/gmr/sem-dif.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">
+						After all instruments were named, we started working on our personal notation of the melody. This notation did not need to conform to any musictheory standard. Instead it should mirror the behavior and appearance of each instrument. While working on this step, we realized, that the piece is devided in three main pieces, which mostly differ from one another in the amount of instruments present. In the picture is a part of the third section.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/personal-notation.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">
+						A few steps and storyboards down the line, we started to implement the behaviors of the instruments in Unity. These are the animation Keyframes for "beep". Since our melody is very fast, this animation only lasts for 14 frames and stands for one appearance of "beep".</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/beep-keyframes.png">
+						</div>
+					</div>
+				</div>
+				<div class="section-container">
+					<h2>Explainaion for the Video</h2>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">In this picture all three most common instruments are visible. The big circle in the background represents the baseline, which grows every time the instrument appears.</br>
+						The small circle in the very centre represents the drum. Whenever the drum is hit, this circle appears for a few frames.</br>
+						The bright circle is "beep". Its vertical movement is determined by its pitch. "Beep" jumps from position to position, representing its playfulness.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/base.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">Whenever "beep" is not present, its opacity fades, until it's invisible. Aside from "beep", the "clap" instrument appears at the beginning of its behavior in this picture. It grows from the centre of the screen out of a circle and moves outwards horizontally.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/clap1.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">This is a continuation of the behavior of "clap".</br>
+						The "sand" instrument also makes an appearance here. Whenever it is present, a small purple dot with a trail rushes from the bottom of the screen diagonally to the top.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/clap2.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">In this picture, "clap" grew so much, that it broke apart in the middle. Now each piece will rush to its closest screen border. Part of why we chose this behavior is that it mirrors the hand movement of real claps.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/clap3.png">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">This is the final instrument: "adrenaline". Since its pitch increases every time it appears, we decided to change the background colour. Little by little the intensity of the background color increases, but it will always fade back to its base color. This picture was taken from about the middle of its appearance.</p>
+						<div class="col2-1-img"> 
+							<img src="../../img/gmr/adrenaline.png">
+						</div>
+					</div>
+					
+				</div>
+			</main>
+		</div>
+		<!--lila Balken-->
+		<div class="side left-side"></div>
+		<div class="side"></div>
+	</div>
+
+
+	<footer>
+		<div class="container">
+			<h2 id="footer-text">I look forward to hearing from you!</h2>
+			<a id="impressum" href="impressum.html">Legal Disclosure</a>
+		</div>
+	</footer>
+</body>
+</html>

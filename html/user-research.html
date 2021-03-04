@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author"	content="Anna Schneider">
+	<title>Anna Schneider</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap" rel="stylesheet">  
+	<link rel="stylesheet" type="text/css" href="../css/style.css">
+</head>
+<body>
+	<header class="header-detail">
+		<div class="container container-nav">
+			<nav aria-label="Navigation">
+				<ul class="main-nav-list">
+					<li class="main-nav-list-item"><a class="main-nav-link" href="../index.html">Home</a></li>
+					<li class="main-nav-list-item"><a class="main-nav-active main-nav-link main-nav-active-projects" href="projects.html">Projekte</a></li>
+					<!--<li class="main-nav-list-item"><a class="main-nav-link" href="#">Über mich</a></li>-->
+				</ul>
+			</nav>
+			<nav aria-label="Sprachauswahl">
+				<ul class="language-nav-list">
+					<li class="language-nav-list-item"><a class="language-nav-active language-nav-link" href="#">Deutsch</a></li>
+					<li class="language-nav-list-item"><a class="language-nav-link" href="eng/user-research.html">English</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<div class="wrapper"> <!--big container-->
+		<div class="container container-flex"> <!--content container-->
+			<main role="main">
+				<div class="section-container">
+					<h1>Feedback im Klassenzimmer</h1>
+					<img class="" src="../img/user-research/user-research-detail-thumbnail.png">
+					<h2>Zusammenfassung</h2>
+					<div class="detail-intro">
+						<p>Die Begleitveranstaltung zu diesem Projekt hatte zum Ziel, mehrere Methoden, wie, zum Beispiel, eine Fokusgruppenbefragung und ein Testing. Ein fertiges Produkt zu gestalten stand nicht im Fokus.
+						Als Beispielprodukt, um diese Methoden zu testen, sollten wir eine Innovation im Schulunterricht generieren.
+						Dieses Projekt ist in Einzelarbeit entstanden.</p>
+					</div>
+				</div>
+				<div class="section-container">
+					<h2>Meine Idee</h2>
+					<div class="detail-intro">
+						<p>Von einer früheren Lehrkraft habe ich erfahren, dass Lehrer sich oft einmal ein Unterrichtskonzept überlegen und dieses jedes Jahr wiederholen. Ich habe mich gefragt, wie eine iterative Denkweise im Schulalltag aussehen könnte, da nicht jeder Jahrgang gleich veranlagt ist. Für eine iterative Vorgehensweise ist es wichtig oftmals Feedback einzuholen. Aus meiner Erfahrung sind Schüler damit eher zurückhaltend, wenn sie von der Lehrkraft direkt gefragt werden. So entstand die Idee anonymes Feedback über kleine Devices während dem Unterricht zu geben. Die Lehrkraft sollte nach der Stunde eine Auswertung erhalten, in der sie nachvollziehen kann, welche Teile der Stunden verständlich waren, und welche Überarbeitung benötigen. Idealerweise sollten die Schüler auch qualitatives Feedback geben können, da dieses am Wertvollsten ist. Die Lehrkraft sollte auch möglichst genau wissen, was sie zum Zeitpunkt eines Feedbacks gesagt hat. Während des Unterrichts wäre es auch vorteilhaft, wenn die Lehrkraft ein Stimmungsbild der Stunde anhand einer live Auswertung sehen könnte.<br/>
+						Als Zielgruppe habe ich die Oberstufe angesetzt, da Schüler in diesem Alter das größte Interesse daran haben den Stoff zu verstehen.</p>
+					</div>
+				</div>
+				<div class="section-container">
+					<h2>Testing</h2>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">Für den Test meines Konzepts habe ich mich mit einer Lehrkraft des Hans-Baldung-Gymnasiums Schwäbisch Gmünd in Verbindung gesetzt. Wir entschieden uns mein Konzept in einer Physik Doppelstunde der 11. Jahrgangsstufe mit vier Schülern zu testen.
+						Dafür habe ich vier Devices prototypisch gebaut. Diese funktionieren mit einem Arduino über Kabel und übermitteln ein Signal, wenn einer der Knöpfe gedrückt wird. Für die Schüler gibt es als visuelles Feedback ihres Inputs je Signal eine LED.
+						Nachdem die Schüler einen Klicker betätigt haben, sollten sie auf einen roten oder grünen Zettel, je nach Signal, kurz qualitatives Feedback schreiben.</p>
+						<div class="col2-1-img"> 	<!--maintains image ratio-->
+							<img src="../img/user-research/kabelsalat.jpg">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">Um die Auswertung für die Lehrkraft zu testen, habe ich ganz hinten im Klassenzimmer eine Go Pro aufgestellt.
+						Die Echtzeit-Ausgabe der Signale für die Lehrkraft habe ich in Form eines Breadboards mit acht LEDs umgesetzt. Vier davon waren für je ein Signal. Wenn eine grüne Taste gedrückt wird, wird eine grüne LED eingeschaltet. Ein negatives Feedback wird gegengerechnet. Ein Signal dauert für fünf Minuten an, damit die Lehrkraft ein Stimmungsbild erkennen kann.</p>
+						<div class="col2-1-img"> 	<!--maintains image ratio-->
+							<img src="../img/user-research/aufbau-go-pro.jpg">
+						</div>
+					</div>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">Immer wenn ein Schüler einen Klicker betätigt hat, habe ich über den Seriellen Monitor in Arduino eine Nachricht erhalten. Diese beinhaltet, welcher Knopf auf welchem Klicker betätigt wurde und wie viel Zeit nach Start des Programms vergangen ist.</p>
+						<div class="col2-1-img"> 	<!--maintains image ratio-->
+							<img src="../img/user-research/durchführung.jpg">
+						</div>
+					</div>
+				</div>
+				<div class="section-container">
+					<h2>Auswertung</h2>
+					<div class="subsection col2-container">
+						<p class="subsection-body sf-layout">Für die Lehrkraft habe ich die Feedback Impulse der Schüler in einem Graph visualisiert, um so ein Stimmungsbild der Stunde zu zeigen. Den Graph habe ich auf das Videomaterial gelegt und immer, wenn ein Klicker betätigt wurde, wird das qualitative Feedback eingeblendet.
+						Abschließend habe ich mit der Lehrkraft ein Feedbackgespräch geführt. Die vier Schüler, die mein Konzept getestet haben, haben einen kurzen Feedbackbogen nach dem Testing ausgefüllt.</p>
+						<div class="col2-1-img"> 	<!--maintains image ratio-->
+							<img class="img-border" src="../img/user-research/video2.png">
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+		<!--lila Balken-->
+		<div class="side left-side"></div>
+		<div class="side"></div>
+	</div>
+
+	<footer>
+		<div class="container">
+			<h2 id="footer-text">Ich freue mich von Ihnen zu hören!</h2>
+			<a id="impressum" href="impressum.html">Impressum</a>
+		</div>
+	</footer>
+</body>
+</html>
