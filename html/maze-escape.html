@@ -1,0 +1,920 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Anna Schneider">
+	<title> Anna Schneider </title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=IBM Plex Sans" rel="stylesheet">  
+    <link rel="stylesheet" type="text/css" href="../css/style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container container-nav">
+            <p id="nav-label">Anna Schneider</p>
+            <nav aria-label="Navigation">
+                <ul class="main-nav-list">
+                    <li class="main-nav-list-item"><a class="main-nav-active main-nav-link" href="../index.html">Projekte</a></li>
+                    <li class="main-nav-list-item"><a class="main-nav-link" href="ueber-mich.html">Über mich</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <div class="container container-flex" id="me-content-container"> <!--content container-->
+            <div class="game-container">
+                <div id ="drawing"></div>
+            </div>
+
+            <div class="me-text-container">
+                <p><span id="zaehler"></span> Münzen gesammelt</p>
+                <p><a id="resetBtn">Neustart</a></p>
+                <p><span id="result"></span></p>
+                <p id="me-instructions">Wie man spielt <br/>
+                    Bewege den blauen Punkt mit den Pfeiltasten durch das Labyrinth und sammle alle Münzen ein, damit sich das Ziel unten links öffnet.<br/>
+                    Komme dabei nicht mit dem Trail, den du hinterlässt in Berührung, sonst ist das Spiel vorbei.<br/>
+                    Nimm dir also Zeit und überlege genau wie du vorgehen möchtest.<br/>
+                    Momentan ist das Spiel nur am PC spielbar.</p>
+                    <!--<p><a href="">Mehr zum Spiel</a></p>-->
+            </div>
+        </div>
+    </div>
+
+    <script src="svg.min.js"></script>
+    <script type="text/javascript">
+
+        var gameRunning = true;
+
+        var textbg;
+        var winText;
+        var loseText;
+        
+        var seperatorsVertical = [];
+        var seperatorsHorizontal = [];
+        var barricades = [];
+        var blocks = [];
+        var collectables = [];
+        var goalBlocks = [];
+        var clear = [];
+
+        var unit = 20;
+
+        prepareGame();
+
+        function prepareGame(){
+            drawField();
+            drawSeperators();
+            prepareCollectables();
+            drawBarricades();
+            player = draw.circle(unit).fill("#5650FF").move(0, 0);
+
+            winText = draw.text("Gewonnen!").font({size: unit*3, fill: "#727272"}).move((draw.width()-unit*15.3)/2, (draw.height()-unit*3)/2).hide();
+            loseText = draw.text("Game Over").font({size: unit*3, fill: "#727272"}).move((draw.width()-unit*15.5)/2, (draw.height()-unit*3)/2).hide();
+            textbg = draw.rect(draw.width(), draw.height()).attr({fill:"#F0F0F0", opacity: 0.5}).hide();
+        }
+
+        timer = window.setInterval(game, 100);
+
+        function game() {
+            collect();
+        }
+        
+        document.addEventListener("keydown", function (event){
+
+            if(gameRunning != true) {
+                return;
+            }
+
+            previousX = player.x();
+            previousY = player.y();
+
+            switch(event.key){
+                case "ArrowUp":
+                if (player.y() != 0){
+                    if (barricadesCollision(player.x(), player.y() - unit) ) {
+                        break;
+                    }
+                    if (blocksCollision(player.x(), player.y() - unit) ) {
+                        gameOver();
+                        break;
+                    }
+                    player.dy( - unit);
+                }
+                break;
+
+                case "ArrowDown":
+                if (player.y() < draw.height() - unit){
+                    if (barricadesCollision(player.x(), player.y() + unit) ) {
+                        break;
+                    }
+                    if (blocksCollision(player.x(), player.y() + unit) ) {
+                        gameOver();
+                        break;
+                    }
+                    if (endState = "inactive" && goalBlockCollision(player.x(), player.y() + unit) ) {
+                        break;
+                    }
+                    player.dy(unit);               
+                }
+                break;
+
+                case "ArrowLeft":
+                if (player.x() != 0){
+                    if (barricadesCollision(player.x() - unit, player.y() ) ) {
+                        break;
+                    }
+                    if (blocksCollision(player.x() - unit, player.y() ) ) {
+                        gameOver();
+                        break;
+                    }
+                    player.dx(-unit);
+                }
+                break;
+                
+                case "ArrowRight":
+                if (player.x() < draw.width() - unit ){
+                    if (barricadesCollision(player.x() + unit, player.y() ) ) {
+                        break;
+                    }
+                    if (blocksCollision(player.x() + unit, player.y()) ) {
+                        gameOver();
+                        break;
+                    }
+                    if (endState = "inactive" && goalBlockCollision(player.x() + unit, player.y() ) ) {
+                        break;
+                    }
+                    player.dx(unit);
+                }
+                break;
+
+                case " ":
+                    //endGame();
+                    //location.reload();
+                    break;
+            }
+
+            currentX = player.x();
+            currentY = player.y();
+
+            drawBlocks();
+        })
+
+        function barricadesCollision(x, y) {
+            for (i = 0; i < barricades.length; i++) {
+                if (x == barricades[i].x() && y == barricades[i].y() ){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function blocksCollision(x, y) {
+            for (i = 0; i < blocks.length; i++) {
+                if (x == blocks[i].x() && y == blocks[i].y() ){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function drawBlocks() {
+            if (currentX != previousX || currentY != previousY){
+                block = draw.rect(unit, unit).move(previousX, previousY).attr({fill:"#b5d6fc"});
+
+                currentX = previousX;
+                currentY = previousY;
+
+                blocks.push(block);
+            }
+        }
+
+        function goalBlockCollision(x, y) {
+            for (i = 0; i < 2; i++) {
+                if (x == goalBlocks[i].x() && y == goalBlocks[i].y() ){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function collect(x, y) {
+            for (i = 0; i < collectables.length; i++) {
+                if (player.x() == collectables[i].x() && player.y() == collectables[i].y() && clear.includes(collectables[i]) ) {
+                    break;
+                }
+                if (player.x() == collectables[i].x() && player.y() == collectables[i].y() ){
+                    clear.push(collectables[i]);
+                }
+            }
+            var score = clear.length + " / " + collectables.length;
+            document.getElementById("zaehler").innerHTML = score;
+
+            if (clear.length == collectables.length) {
+                openGoal();
+            }
+        }
+
+        function openGoal() {
+            for (i = 0; i < goalBlocks.length; i++) {
+                goalBlocks[i].move(draw.width(), draw.height());
+            }
+            if (player.x() == goal.x() && player.y() == goal.y() ) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            textbg.show();
+            winText = draw.text("Gewonnen!").font({size: unit*3, fill: "#727272"}).move((draw.width()-unit*15.3)/2, (draw.height()-unit*3)/2);
+            gameRunning = false;
+            document.getElementById("result").innerHTML = "Du hast gewonnen! <a href=\"mailto:anna2000schneider@gmail.com\">Erzähl mir davon!</a><br/>";
+        }
+        
+        function gameOver(){
+            clearInterval(timer);
+            textbg.show();
+            loseText = draw.text("Game Over").font({size: unit*3, fill: "#727272"}).move((draw.width()-unit*15.5)/2, (draw.height()-unit*3)/2);
+            gameRunning = false;
+
+            if(clear.length <= 6){
+                document.getElementById("result").innerHTML = "Das war ein guter Start. Probiers gleich nochmal! ";
+            } else if (6 < clear.length <= 9){
+                document.getElementById("result").innerHTML = "Das war schon richtig gut! ";
+            } else {
+                document.getElementById("result").innerHTML = "Das war knapp! Nächstes Mal schaffst du es. ";
+            }
+            
+        }
+
+        //#########################
+        //##prepareGame functions##
+        //#########################
+
+        function drawField(){
+        draw = SVG("drawing").size(unit*30,unit*30);
+        field = draw.rect(draw.width(), draw.height()).attr({fill:"#F0F0F0"});
+        goal = draw.rect(unit, unit).move(unit*29, unit*29).attr({fill:"yellow"});
+
+        goalblock1 = draw.rect(unit, unit).move(unit*28, unit*29).attr({fill:"#B7B7B7"});
+        goalblock2 = draw.rect(unit, unit).move(unit*29, unit*28).attr({fill:"#B7B7B7"});
+        goalBlocks.push(goalblock1, goalblock2);
+        }
+
+        function drawSeperators(){
+            for (i = 0; i <= 30; i++){
+                drawSeperatorsVertical();
+                drawSeperatorsHorizontal();
+            }
+        }
+
+        function drawSeperatorsVertical(){
+            let x = 0 + ((seperatorsVertical.length * unit) -1);
+            let y = 0;
+            
+            let seperatorVertical = draw.rect(2, draw.height()).move(x, y).fill("#ffffff");
+            seperatorsVertical.push(seperatorVertical);
+        }
+
+        function drawSeperatorsHorizontal(){
+            let x = 0;
+            let y = 0 + ((seperatorsHorizontal.length * unit) -1);
+
+            let seperatorHorizontal = draw.rect(draw.width(), 2).move(x, y).fill("#ffffff");
+            seperatorsHorizontal.push(seperatorHorizontal);
+        }
+
+        function prepareCollectables(){                         //defines collectable positions and saves them in an array
+            for (i = 0; i <= 10; i++){
+                let collectable = draw.circle(unit).fill("yellow");
+                collectables.push(collectable);
+            }
+            collectables[0].move(unit*2, unit*8);
+            collectables[1].move(unit*4, unit*25);
+            collectables[2].move(unit*8, unit*2);
+            collectables[3].move(unit*11, unit*21);
+            collectables[4].move(unit*14, unit);
+            collectables[5].move(unit*15, unit*11);
+            collectables[6].move(unit*17, unit*28);
+            collectables[7].move(unit*20, unit*15);
+            collectables[8].move(unit*24, unit*6);
+            collectables[9].move(unit*25, unit*21);
+            collectables[10].move(unit*29, unit*10);
+        } 
+
+        function drawBarricades() {                             //draw the barricades in a very spaghetti way
+            for (i = 0; i <= 30; i++) {
+                drawBarricades0();
+                drawBarricades1();
+                drawBarricades2();
+                drawBarricades3();
+                drawBarricades4();
+                drawBarricades5();
+                drawBarricades6();
+                drawBarricades7();
+                drawBarricades8();
+                drawBarricades9();
+                drawBarricades10();
+                drawBarricades11();
+                drawBarricades12();
+                drawBarricades13();
+                drawBarricades14();
+                drawBarricades15();
+                drawBarricades16();
+                drawBarricades17();
+                drawBarricades18();
+                drawBarricades19();
+                drawBarricades20();
+                drawBarricades21();
+                drawBarricades22();
+                drawBarricades23();
+                drawBarricades24();
+                drawBarricades25();
+                drawBarricades26();
+                drawBarricades27();
+                drawBarricades28();
+                drawBarricades29();
+            }
+        }
+
+        function drawBarricades0() {
+            if (i == 6 || i == 15){
+                let x = 0;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            } 
+        }
+
+        function drawBarricades1() {
+            if (i == 0 || i == 1 || i == 4 || i == 6 || i == 8 || i == 9 || i == 13 || i == 15){
+                let x = unit;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 17; j <= 28; j ++){
+                let x = unit;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades2() {
+            if (i == 4 || i == 6 || i == 9 || i == 11 || i == 13 || i == 15 || i == 17 || i == 22){
+                let x = unit*2;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades3() {
+            if (i == 4 || i == 7 || i == 11 || i == 13 || i == 15 || i == 17 || i == 19 || i == 20 || i == 22){
+                let x = unit*3;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 24; j <= 27; j ++){
+                let x = unit*3;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades4() {
+            if (i == 13 || i == 15 || i == 17 || i == 19 || i == 22 || i == 24 || i == 27){
+                let x = unit*4;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 2; j <= 5; j ++){
+                let x = unit*4;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 8; k <= 11; k ++){
+                let x = unit*4;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades5() {
+            if (i == 6 || i == 13 || i == 15 || i == 17 || i == 19 || i == 21 || i == 22 || i == 24){
+                let x = unit*5;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades6() {
+            if ( i == 17 || i == 19|| i == 24){
+                let x = unit*6;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 6; j <= 13; j ++){
+                let x = unit*6;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades7() {
+            if (i == 6 || i == 16 || i == 17){
+                let x = unit*7;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 0; j <= 3; j ++){
+                let x = unit*7;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 19; k <= 29; k ++){
+                let x = unit*7;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades8() {
+            if (i == 3 || i == 6 || i == 16 || i == 19 || i == 23){
+                let x = unit*8;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 8; j <= 14; j ++){
+                let x = unit*8;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades9() {
+            if (i == 3 || i == 6 || i == 8 || i == 14 || i == 16 || i == 18 || i == 19 || i == 21 || i == 23){
+                let x = unit*9;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 25; j <= 28; j ++){
+                let x = unit*9;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades10() {
+            if (i == 2 || i == 3 || i == 6 || i == 8 || i == 16 || i == 18 || i == 21 || i == 23 || i == 27){
+                let x = unit*10;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 10; j <= 12; j ++){
+                let x = unit*10;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades11() {
+            if (i == 6 || i == 8 || i == 18 || i == 20 || i == 27 || i == 29){
+                let x = unit*11;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 12; j <= 16; j ++){
+                let x = unit*11;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 23; k <= 25; k ++){
+                let x = unit*11;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades12() {
+            if (i == 6 || i == 12 || i == 16 || i == 18 || i == 20 || i == 25 || i == 27 || i == 29){
+                let x = unit*12;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 8; j <= 10; j ++){
+                let x = unit*12;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades13() {
+            if (i == 8 || i == 12 || i == 14 || i == 16 || i == 18 || i == 20 || i == 27){
+                let x = unit*13;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 0; j <= 5; j ++){
+                let x = unit*13;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 20; k <= 23; k ++){
+                let x = unit*13;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades14() {
+            if (i == 2 || i == 7 || i == 8 || i == 14 || i == 16 || i == 18){
+                let x = unit*14;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 10; j <= 12; j ++){
+                let x = unit*14;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 24; k <= 28; k ++){
+                let x = unit*14;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades15() {
+            if (i == 2 || i == 10 || i == 14 || i == 24){
+                let x = unit*15;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 4; j <= 7; j ++){
+                let x = unit*15;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 18; k <= 22; k ++){
+                let x = unit*15;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades16() {
+            if (i == 2 || i == 7 || i == 9 || i == 10 || i == 13 || i == 14 || i == 18 || i == 22 || i == 24){
+                let x = unit*16;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 26; j <= 29; j ++){
+                let x = unit*16;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades17() {
+            if (i == 7 || i == 14 || i == 16 || i == 18 || i == 20 || i == 24 || i == 26){
+                let x = unit*17;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 2; j <= 5; j ++){
+                let x = unit*17;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 9; k <= 11; k ++){
+                let x = unit*17;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades18() {
+            if (i == 7 || i == 11 || i == 12 || i == 16 || i == 18 || i == 26 || i == 28){
+                let x =unit*18;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 21; j <= 24; j ++){
+                let x = unit*18;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades19() {
+            if ( i == 18 || i == 19 || i == 23 || i == 26 || i == 28){
+                let x = unit*19;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 1; j <= 9; j ++){
+                let x = unit*19;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 13; k <= 16; k ++){
+                let x = unit*19;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades20() {
+            if (i == 13 || i == 16 || i == 20 || i == 21 || i == 23 || i == 25){
+                let x = unit*20;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 9; j <= 11; j ++){
+                let x = unit*20;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades21() {
+            if (i == 6 || i == 7 || i == 9 || i == 13 || i == 23 || i == 25 || i == 27){
+                let x = unit*21;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 0; j <= 3; j ++){
+                let x = unit*21;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 16; k <= 18; k ++){
+                let x = unit*21;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades22() {
+            if (i == 3 || i == 7 || i == 9 || i == 16 || i == 25 || i == 27){
+                let x = unit*22;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 11; j <= 13; j ++){
+                let x = unit*22;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 21; k <= 23; k ++){
+                let x = unit*22;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades23() {
+            if (i == 1 || i == 5 || i == 7 || i == 9 || i == 12 || i == 16 || i == 18 || i == 21 || i == 25 || i == 27){
+                let x = unit*23;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades24() {
+            if (i == 7 || i == 9 || i == 10 || i == 12 || i == 14 || i == 16 || i == 18 || i == 20 || i == 23 || i == 24 || i == 27){
+                let x = unit*24;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 1; j <= 5; j ++){
+                let x = unit*24;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades25() {
+            if (i == 1 || i == 5 || i == 7 || i == 12 || i == 18 || i == 20 || i == 23 || i == 24 || i == 26 || i == 27){
+                let x = unit*25;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades26() {
+            if (i == 1 || i == 3 || i == 5 || i == 12 || i == 13 || i == 21 || i == 23 || i == 26){
+                let x = unit*26;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 7; j <= 9; j ++){
+                let x = unit*26;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 15; k <= 18; k ++){
+                let x = unit*26;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades27() {
+            if (i == 1 || i == 3 || i == 5 || i == 7 || i == 13 || i == 15 || i == 19 || i == 21 || i == 23 || i == 25 || i == 26){
+                let x = unit*27;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades28() {
+            if (i == 1 || i == 3 || i == 5 || i == 7 || i == 13 || i == 15 || i == 17 || i == 19 || i == 21 || i == 23){
+                let x = unit*28;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (j = 9; j <= 11; j ++){
+                let x = unit*28;
+                let y = 0 + (j * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+            for (k = 25; k <= 28; k ++){
+                let x = unit*28;
+                let y = 0 + (k * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        function drawBarricades29() {
+            if (i == 3 || i == 7 || i == 13 || i == 17 || i == 21 || i == 28){
+                let x = unit*29;
+                let y = 0 + (i * unit);
+
+                let barricade = draw.rect(unit,unit).move(x, y).fill("#B7B7B7");
+                barricades.push(barricade);
+            }
+        }
+
+        /*reset game*/
+        const reset = document.getElementById("resetBtn");
+        reset.addEventListener("click", resetGame);
+
+        function resetGame(){
+            gameRunning = true;
+            player.move(0, 0);
+            endState = "inactive";
+
+            //close goal back up
+            goalblock1.move(unit*28, unit*29);
+            goalblock2.move(unit*29, unit*28);
+
+            //move text and bg out of the way
+            textbg.hide();
+            winText.hide();
+            loseText.hide();
+
+            //removes blocks until none remain
+            for (i = 0; i < blocks.length; ){                   //i is static, so the array gets fully cleared. If i++ we'd miss most recent block
+                blocks[i].move(draw.width(), draw.height()).hide();    //moves blocks out of view
+                blocks.shift();
+            }
+
+            //removes all collected collectables for new round
+            for (i = 0; i < clear.length; ){
+                clear.shift();                                 //removes first value of array, we don't want the array to be full of junk
+            }
+
+        }
+
+    </script>
+</body>
+</html>
