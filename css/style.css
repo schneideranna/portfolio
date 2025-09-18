@@ -77,6 +77,10 @@ p a:focus {
 	color: #B4B4B4;
 }
 
+#me-instructions {
+	color: #B7B7B7;
+}
+
 /********/
 /*Layout*/
 /********/
@@ -357,6 +361,36 @@ footer {
 	margin-bottom: 0;
 }
 
+/**Maze Escape Game Site**/
+#me-content-container {
+	margin-top: 2em;
+	background-color: #f1f1f1;
+	border-radius: 1em;
+	padding: 1em;
+}
+
+.game-container {
+	margin-bottom: 2em;
+}
+
+#drawing {
+	height: 600px;
+}
+
+.me-text-container {
+	display: flex;
+	flex-direction: column;
+}
+
+.me-text-container p {
+	margin-top: 2em;
+}
+
+.me-text-container p:first-child {
+	margin-top: 0;
+}
+
+
 /***Media Query***/
 @media(min-width: 750px) {
 	/*general*/
@@ -508,5 +542,18 @@ footer {
 		margin: 0 auto;
 	}
 	
+	/**Maze Escape Game Site**/
+	#me-content-container{
+		max-width: 1200px;
+	}
+
+	.me-text-container {
+		justify-content: right;
+	}
+
+	.game-container {
+		margin-bottom: 0;
+		margin-right: 2em;
+	}
 
 }
